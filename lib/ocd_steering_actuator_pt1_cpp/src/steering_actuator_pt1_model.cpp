@@ -21,7 +21,8 @@ void PT1SteeringActuatorModel::evaluate()
   // Set the x_dot vec
   x_dot_vec_[x::position_rad] = x_dot;
   measured_steering_angle_rad_ = x_vec_[x::position_rad];
-  actual_steering_angle_rad_ = measured_steering_angle_rad_ + p_.static_offset_rad;
+  actual_steering_angle_rad_ =
+    p_.road_wheel_angle_gain * measured_steering_angle_rad_ + p_.static_offset_rad;
 }
 void PT1SteeringActuatorModel::set_x_vec(const StateVectorType & x_vec) { x_vec_ = x_vec; }
 void PT1SteeringActuatorModel::set_driver_input(const DriverInputType & input)
@@ -76,6 +77,10 @@ void PT1SteeringActuatorModel::declare_parameters()
   param_manager_->declare_parameter(
     "steering_actuator.static_offset_rad", &p_.static_offset_rad, 0.0, pt::DOUBLE,
     "'Oval steering'");
+  param_manager_->declare_parameter(
+    "steering_actuator.road_wheel_angle_gain", &p_.road_wheel_angle_gain, 1.0, pt::DOUBLE,
+    "Road-wheel angle per measured steering angle (steering ratio / kinematics error of the "
+    "measurement)");
 }
 void PT1SteeringActuatorModel::register_log_signals()
 {

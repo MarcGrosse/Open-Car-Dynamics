@@ -46,7 +46,7 @@ public:
 private:
   struct Parameters
   {
-    double T_PT1, angle_max_rad, angle_rate_max_radps, static_offset_rad;
+    double T_PT1, angle_max_rad, angle_rate_max_radps, static_offset_rad, road_wheel_angle_gain;
   } p_;
   StateVectorType x_vec_ = StateVectorType::Zero();
   StateVectorType x_dot_vec_ = StateVectorType::Zero();
