@@ -103,6 +103,8 @@ VehicleModelNode<VEHICLE_T, DT_COMM_HANDLER_T, SA_COMM_HANDLER_T>::VehicleModelN
   external_input_.external_force_N = tam::types::common::Vector3D<double>(0.0, 0.0, 0.0);
   external_input_.external_torque_Nm = tam::types::common::Vector3D<double>(0.0, 0.0, 0.0);
   external_input_.lambda_mue = tam::types::common::DataPerWheel<double>(1.0, 1.0, 1.0, 1.0);
+  external_input_.lambda_kx = tam::types::common::DataPerWheel<double>(1.0, 1.0, 1.0, 1.0);
+  external_input_.lambda_ky = tam::types::common::DataPerWheel<double>(1.0, 1.0, 1.0, 1.0);
 }
 template <
   interfaces::concepts::VehicleModel VEHICLE_T,

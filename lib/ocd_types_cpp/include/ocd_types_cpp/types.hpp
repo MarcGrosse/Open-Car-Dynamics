@@ -12,6 +12,8 @@ struct ExternalInfluences
   tam::types::common::Vector3D<double> wind_mps = {0, 0, 0};            // In vehicle frame
   tam::types::common::DataPerWheel<double> z_height_road_m = {0, 0, 0, 0};
   tam::types::common::DataPerWheel<double> lambda_mue = {1, 1, 1, 1};
+  tam::types::common::DataPerWheel<double> lambda_kx = {1, 1, 1, 1};  // Long. slip stiffness scale
+  tam::types::common::DataPerWheel<double> lambda_ky = {1, 1, 1, 1};  // Cornering stiffness scale
 };
 struct VehicleDynamicsModelOutput
 {
@@ -63,5 +65,8 @@ struct TireModelInput
   double F_z_N = 0.0;              // Normal force in the tire road contact patch
   double gamma_rad =
     0.0;  // Positive angle means clockwise rotation locking from the rear of the car.
+  double lambda_mu = 1.0;  // Friction (peak) scale, applied by models that support it
+  double lambda_kx = 1.0;  // Longitudinal slip stiffness scale, applied by models that support it
+  double lambda_ky = 1.0;  // Cornering stiffness scale, applied by models that support it
 };
 }  // namespace tam::ocd::types

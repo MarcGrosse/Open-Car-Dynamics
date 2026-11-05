@@ -85,6 +85,8 @@ class VehicleDynamicsDoubleTrackEqns
     // Suspension geometry
     tam::types::common::DataPerWheel<double> toe_out_rad;
     tam::types::common::DataPerWheel<double> camber_out_rad;
+
+    double lambda_mue_scales_mu;  // 0: lambda_mue scales the tire forces, 1: the tire model's mu
   };
   // Variables that are directly calculated from the given parameters
   struct DependentParameters

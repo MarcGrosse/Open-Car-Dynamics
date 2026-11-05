@@ -1,11 +1,16 @@
 // Copyright 2026 Simon Sagmeister
 
 #include "ocd_tire_models_cpp/mf_52.hpp"
+
+#include <algorithm>
 namespace tam::ocd::tire_models
 {
 types::TireModelOutput MF52::evaluate(types::TireModelInput const & input)
 {
   types::TireModelOutput out;
+  lambda_mu_ = input.lambda_mu;
+  lambda_kx_ = input.lambda_kx;
+  lambda_ky_ = input.lambda_ky;
   double F_x_o = long_force_pure_slip(input.F_z_N, input.longitudinal_slip);
   double F_y_o = lat_force_pure_slip(input.F_z_N, -input.slip_angle_rad, input.gamma_rad);
   out.longitudinal_force_N = long_force_combined_slip(
@@ -20,14 +25,15 @@ double MF52::long_force_pure_slip(double F_z, double kappa) const
   double F_z_o_a = p_.LFZO * p_.FNOMIN;
   double dfz = (F_z - F_z_o_a) / F_z_o_a;
   double S_H_x = (p_.PHX1 + p_.PHX2 * dfz) * p_.LHX;
-  double S_V_x = F_z * (p_.PVX1 + p_.PVX2 * dfz) * p_.LVX * p_.LMUX;
+  double S_V_x = F_z * (p_.PVX1 + p_.PVX2 * dfz) * p_.LVX * (p_.LMUX * lambda_mu_);
   double kappa_x = kappa + S_H_x;
   double C_x = p_.PCX1 * p_.LCX;
-  double mu_x = (p_.PDX1 + p_.PDX2 * dfz) * p_.LMUX;
+  double mu_x = (p_.PDX1 + p_.PDX2 * dfz) * (p_.LMUX * lambda_mu_);
   double D_x = mu_x * F_z;
   double E_x = (p_.PEX1 + p_.PEX2 * dfz + p_.PEX3 * std::pow(dfz, 2)) *
                (1.0 - p_.PEX4 * std::copysign(1.0, kappa_x)) * p_.LEX;
-  double K_x = F_z * (p_.PKX1 + p_.PKX2 * dfz) * std::exp(p_.PKX3 * dfz) * p_.LKX;
+  E_x = std::min(E_x, 1.0);  // Magic Formula requires E <= 1
+  double K_x = F_z * (p_.PKX1 + p_.PKX2 * dfz) * std::exp(p_.PKX3 * dfz) * (p_.LKX * lambda_kx_);
   double B_x = K_x / (C_x * D_x);
   // Longitudinal Force (pure longitudinal slip)
   double F_x_o =
@@ -42,15 +48,16 @@ double MF52::lat_force_pure_slip(double F_z, double alpha, double gamma) const
   double F_z_o_a = p_.LFZO * p_.FNOMIN;
   double dfz = (F_z - F_z_o_a) / F_z_o_a;
   double K_y_g_o = F_z * (p_.PKY6 + p_.PKY7 * dfz) * p_.LKYG;
-  double S_V_y_g = F_z * (p_.PVY3 + p_.PVY4 * dfz) * gamma_s * p_.LKYG * p_.LMUY;
-  double S_V_y = F_z * (p_.PVY1 + p_.PVY2 * dfz) * p_.LVY * p_.LMUY + S_V_y_g;
+  double S_V_y_g = F_z * (p_.PVY3 + p_.PVY4 * dfz) * gamma_s * p_.LKYG * (p_.LMUY * lambda_mu_);
+  double S_V_y = F_z * (p_.PVY1 + p_.PVY2 * dfz) * p_.LVY * (p_.LMUY * lambda_mu_) + S_V_y_g;
   double K_y =
     p_.PKY1 * F_z_o_a * (1.0 - p_.PKY3 * std::abs(gamma_s)) *
     std::sin(p_.PKY4 * std::atan(F_z / ((p_.PKY2 + p_.PKY5 * std::pow(gamma_s, 2)) * F_z_o_a))) *
-    p_.LKY;
+    (p_.LKY * lambda_ky_);
   double S_H_y = (p_.PHY1 + p_.PHY2 * dfz) * p_.LHY + (K_y_g_o * gamma_s - S_V_y_g) / K_y;
   double C_y = p_.PCY1 * p_.LCY;
-  double mu_y = ((p_.PDY1 + p_.PDY2 * dfz) * (1.0 - p_.PDY3 * std::pow(gamma_s, 2))) * p_.LMUY;
+  double mu_y = ((p_.PDY1 + p_.PDY2 * dfz) * (1.0 - p_.PDY3 * std::pow(gamma_s, 2))) *
+                (p_.LMUY * lambda_mu_);
   double D_y = mu_y * F_z;
   double B_y = K_y / (C_y * D_y);
   double alpha_y = alpha + S_H_y;
@@ -58,6 +65,7 @@ double MF52::lat_force_pure_slip(double F_z, double alpha, double gamma) const
                (1.0 + p_.PEY5 * std::pow(gamma_s, 2) -
                 (p_.PEY3 + p_.PEY4 * gamma_s) * std::copysign(1.0, alpha_y)) *
                p_.LEY;
+  E_y = std::min(E_y, 1.0);  // Magic Formula requires E <= 1
   double F_y_o =
     D_y *
       std::sin(C_y * std::atan(B_y * alpha_y - E_y * (B_y * alpha_y - std::atan(B_y * alpha_y)))) +
@@ -91,7 +99,8 @@ double MF52::lat_force_combined_slip(
   double gamma_s = std::sin(gamma);
   double F_z_o_a = p_.LFZO * p_.FNOMIN;
   double dfz = (F_z - F_z_o_a) / F_z_o_a;
-  double mu_y = ((p_.PDY1 + p_.PDY2 * dfz) / (1.0 + p_.PDY3 * std::pow(gamma_s, 2))) * p_.LMUY;
+  double mu_y = ((p_.PDY1 + p_.PDY2 * dfz) / (1.0 + p_.PDY3 * std::pow(gamma_s, 2))) *
+                (p_.LMUY * lambda_mu_);
   double D_V_y_k = mu_y * F_z * (p_.RVY1 + p_.RVY2 * dfz + p_.RVY3 * gamma_s) *
                    std::cos(std::atan(p_.RVY4 * alpha));
   double S_V_y_k = D_V_y_k * std::sin(p_.RVY5 * std::atan(p_.RVY6 * kappa)) * p_.LVYKA;

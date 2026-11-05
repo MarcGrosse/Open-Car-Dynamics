@@ -222,12 +222,18 @@ void VehicleDynamicsDoubleTrackEqns<TireModelT, AeroModelT>::calculate_tire_forc
   auto tire_model_eval = [this](
                            double F_z_N, double long_slip, double slip_angle_rad,
                            TireModelT & model, Eigen::Vector2d & target, bool mirror,
-                           double external_scale, double camber_out_rad) {
+                           double external_scale, double lambda_kx, double lambda_ky,
+                           double camber_out_rad) {
     // Mirror the tire model to account for asymmetry
     int mirror_factor = (mirror) ? -1 : 1;
-    auto out = model.evaluate({long_slip, mirror_factor * slip_angle_rad, F_z_N, -camber_out_rad});
-    target[0] = out.longitudinal_force_N * external_scale;
-    target[1] = mirror_factor * out.lateral_force_N * external_scale;
+    // lambda_mue either scales mu inside the tire model or the resulting forces (legacy)
+    bool const scale_mu = p_.lambda_mue_scales_mu > 0.5;
+    double const force_scale = scale_mu ? 1.0 : external_scale;
+    auto out = model.evaluate(
+      {long_slip, mirror_factor * slip_angle_rad, F_z_N, -camber_out_rad,
+       scale_mu ? external_scale : 1.0, lambda_kx, lambda_ky});
+    target[0] = out.longitudinal_force_N * force_scale;
+    target[1] = mirror_factor * out.lateral_force_N * force_scale;
   };
 
   // Use the delayed kappa and alpha
@@ -251,6 +257,8 @@ void VehicleDynamicsDoubleTrackEqns<TireModelT, AeroModelT>::calculate_tire_forc
     imr_.tire_forces_tire_frame_N.x, \
     mirror, \
     external_influences_.lambda_mue.x, \
+    external_influences_.lambda_kx.x, \
+    external_influences_.lambda_ky.x, \
     p_.camber_out_rad.x \
   )
 

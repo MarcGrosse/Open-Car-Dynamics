@@ -41,7 +41,9 @@ PYBIND11_MODULE(_ocd_types_cpp_py, m)
     .def_readwrite("external_torque_Nm", &typ::ExternalInfluences::external_torque_Nm)
     .def_readwrite("wind_mps", &typ::ExternalInfluences::wind_mps)
     .def_readwrite("z_height_road_m", &typ::ExternalInfluences::z_height_road_m)
-    .def_readwrite("lambda_mue", &typ::ExternalInfluences::lambda_mue);
+    .def_readwrite("lambda_mue", &typ::ExternalInfluences::lambda_mue)
+    .def_readwrite("lambda_kx", &typ::ExternalInfluences::lambda_kx)
+    .def_readwrite("lambda_ky", &typ::ExternalInfluences::lambda_ky);
   py::class_<typ::VehicleModelOutput>(m, "VehicleModelOutput")
     .def(py::init())
     .def_readwrite("vehicle_dynamics_output", &typ::VehicleModelOutput::vehicle_dynamics_output)

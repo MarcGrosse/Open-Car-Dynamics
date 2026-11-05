@@ -160,5 +160,11 @@ private:
   std::unique_ptr<
     InfluenceChannel<tum_msgs::msg::TUMFloat64PerWheelStamped, tum_msgs::msg::TUMFloat64PerWheel>>
     z_height_channel_;
+  std::unique_ptr<
+    InfluenceChannel<tum_msgs::msg::TUMFloat64PerWheelStamped, tum_msgs::msg::TUMFloat64PerWheel>>
+    stiffness_x_channel_;
+  std::unique_ptr<
+    InfluenceChannel<tum_msgs::msg::TUMFloat64PerWheelStamped, tum_msgs::msg::TUMFloat64PerWheel>>
+    stiffness_y_channel_;
 };
 }  // namespace tam::ocd

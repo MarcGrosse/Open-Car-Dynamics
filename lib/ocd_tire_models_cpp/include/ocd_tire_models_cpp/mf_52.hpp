@@ -35,6 +35,8 @@ public:
   void register_log_signals(tam::tsl::ReferenceLogger *, std::string = "") const override {}
 
 private:
+  // Per-call scales from TireModelInput (temperature, track grip), applied on top of LMU*/LK*
+  double lambda_mu_ = 1.0, lambda_kx_ = 1.0, lambda_ky_ = 1.0;
   double long_force_pure_slip(double F_z, double kappa) const;
   double lat_force_pure_slip(double F_z, double alpha, double gamma) const;
   double long_force_combined_slip(

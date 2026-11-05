@@ -53,6 +53,10 @@ ExternalInfluenceAggregatorNode::ExternalInfluenceAggregatorNode(
     "grip_source_topics", std::vector<std::string>{});
   auto const z_height_topics = this->declare_parameter<std::vector<std::string>>(
     "z_height_source_topics", std::vector<std::string>{});
+  auto const stiffness_x_topics = this->declare_parameter<std::vector<std::string>>(
+    "stiffness_x_source_topics", std::vector<std::string>{});
+  auto const stiffness_y_topics = this->declare_parameter<std::vector<std::string>>(
+    "stiffness_y_source_topics", std::vector<std::string>{});
   auto const wrench_op = parse_combine_op(
     this->declare_parameter<std::string>("wrench_combine_op", "add"), this->get_logger());
   auto const wind_op = parse_combine_op(
@@ -92,6 +96,11 @@ ExternalInfluenceAggregatorNode::ExternalInfluenceAggregatorNode(
   z_height_channel_ = std::make_unique<PerWheelChannel>(
     this, qos, z_height_topics, z_height_op,
     per_wheel_filled(z_height_op == CombineOp::multiply ? 1.0 : 0.0), to_data);
+  // Stiffness scales multiply like grip scales
+  stiffness_x_channel_ = std::make_unique<PerWheelChannel>(
+    this, qos, stiffness_x_topics, CombineOp::multiply, per_wheel_filled(1.0), to_data);
+  stiffness_y_channel_ = std::make_unique<PerWheelChannel>(
+    this, qos, stiffness_y_topics, CombineOp::multiply, per_wheel_filled(1.0), to_data);
 
   pub_ = this->create_publisher<ocd_interfaces::msg::ExternalInfluences>(output_topic, qos);
 
@@ -108,6 +117,8 @@ void ExternalInfluenceAggregatorNode::publish()
   msg.wind_mps = wind_channel_->combined();
   msg.lambda_mue = grip_channel_->combined();
   msg.z_height_road_m = z_height_channel_->combined();
+  msg.lambda_kx = stiffness_x_channel_->combined();
+  msg.lambda_ky = stiffness_y_channel_->combined();
 
   pub_->publish(std::move(msg));
 }

@@ -130,6 +130,8 @@ void VehicleDynamicsDoubleTrackModel<TireModelT, AeroModelT>::register_log_signa
   logger_->log("external_influences/external_torque_Nm", &eqns_.external_influences_.external_torque_Nm); // NOLINT
   logger_->log("external_influences/wind_mps", &eqns_.external_influences_.wind_mps);
   logger_->log("external_influences/lambda_mue", &eqns_.external_influences_.lambda_mue);
+  logger_->log("external_influences/lambda_kx", &eqns_.external_influences_.lambda_kx);
+  logger_->log("external_influences/lambda_ky", &eqns_.external_influences_.lambda_ky);
   logger_->log("external_influences/z_height_road_m", &eqns_.external_influences_.z_height_road_m);
   logger_->log("imr/dynamic_tire_radius", &eqns_.imr_.dynamic_tire_radius_m);
   logger_->log("imr/effective_steering_angle_per_wheel_rad", &eqns_.imr_.effective_steering_angle_per_wheel_rad); // NOLINT
@@ -245,6 +247,10 @@ void VehicleDynamicsDoubleTrackModel<TireModelT, AeroModelT>::declare_parameters
   p_def_d(
     "tire.rolling_resistance_coefficient", 0.025, &eqns_.p_.c_rr,
     "Rolling resistance coefficient. Ratio of F_roll to F_n");
+  p_def_d(
+    "tire.lambda_mue_scales_mu", 0.0, &eqns_.p_.lambda_mue_scales_mu,
+    "0: lambda_mue scales the tire forces (stiffness included), 1: it scales the tire model's mu "
+    "only (needs a tire model that applies TireModelInput::lambda_mu)");
 
   // Tire Radii
   param_manager_->declare_parameter(

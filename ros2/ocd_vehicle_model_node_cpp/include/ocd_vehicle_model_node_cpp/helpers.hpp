@@ -18,6 +18,8 @@ inline tam::ocd::types::ExternalInfluences external_influences_type_from_msg(
   type_.external_torque_Nm = tam::type_conversions::vector_3d_type_from_msg(msg.wrench.torque);
   type_.wind_mps = tam::type_conversions::vector_3d_type_from_msg(msg.wind_mps);
   type_.lambda_mue = tam::type_conversions::data_per_wheel_type_from_msg(msg.lambda_mue);
+  type_.lambda_kx = tam::type_conversions::data_per_wheel_type_from_msg(msg.lambda_kx);
+  type_.lambda_ky = tam::type_conversions::data_per_wheel_type_from_msg(msg.lambda_ky);
   type_.z_height_road_m = tam::type_conversions::data_per_wheel_type_from_msg(msg.z_height_road_m);
   return type_;
 }
